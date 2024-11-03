@@ -4,22 +4,65 @@ import "./Login_files/css.css"
 import "./Login_files/jquery-ui.css"
 import "./Login_files/style.css"
 import "./Login_files/dswi.css"
+import AddUserForm from './addUserForm';
+import SignIn from './signInForm';
+
+const Overlay = ({ message, onClose }) => (
+  <div className="overlay">
+    <div className="overlay-content">
+      <h2>{message}</h2>
+      <button onClick={onClose}>Close</button>
+    </div>
+  </div>
+);
 
 const LoginComponent = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [signedIn, setSignedIn] = useState(false);
+  const [message, setMessage] = useState('');
 
   const handleUsernameChange = (event) => setUsername(event.target.value);
   const handlePasswordChange = (event) => setPassword(event.target.value);
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    // Form submission logic
     console.log("Submitted:", { username, password });
+  };
+
+  const handleSignIn = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch('http://localhost:3000/sign-in', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        console.log("response: ", response.ok);
+        alert("thankyou for logging in!");
+      } else {
+        setMessage(data.message);
+      }
+    } catch (error) {
+      console.error("Error signing in:", error);
+      setMessage("An error occurred during sign-in.");
+    }
+  };
+
+  const handleOverlayClose = () => {
+    setSignedIn(false); // Close the overlay
+    setMessage(''); // Clear the message
   };
 
   return (
     <div className="login mdc-typography" id="desktop">
+      {signedIn && <Overlay message={message} onClose={handleOverlayClose} />}
       <div id="orange-bar"></div>
       <div id="page" className="hfeed site row-offcanvas">
         <div id="main" className="site-main">
@@ -53,11 +96,10 @@ const LoginComponent = () => {
                         <div className="entry-content reg">
                           <header className="entry-header">
                             <nav className="breadcrumbs" role="navigation" aria-label="You are here:">
-                              Please enter your NetID and password:
+                              Please Log in:
                             </nav>
                           </header>
-
-                          <form method="post" id="fm1" className="form-horizontal" onSubmit={handleSubmit}>
+                          <form method="post" id="fm1" className="form-horizontal">
                             <div id="login-form-controls">
                               <div className="form-group" id="usernameSection">
                                 <label htmlFor="username" className="one-fourth column control-label">NetID:</label>
@@ -81,7 +123,7 @@ const LoginComponent = () => {
                                   onChange={handlePasswordChange}
                                 />
                               </div>
-                              <button type="submit" className="btn btn-primary">Login</button>
+                              <button type="submit" className="btn btn-primary" onClick={handleSignIn}>Login</button>
                             </div>
                           </form>
 
@@ -108,6 +150,37 @@ const LoginComponent = () => {
           </div>
         </div>
       </div>
+
+      {/* Overlay styles */}
+      <style jsx>{`
+        .overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(0, 0, 0, 0.7);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 1000;
+        }
+
+        .overlay-content {
+          background: white;
+          padding: 20px;
+          border-radius: 5px;
+          text-align: center;
+        }
+
+        .overlay-content h2 {
+          margin: 0;
+        }
+
+        .overlay-content button {
+          margin-top: 15px;
+        }
+      `}</style>
     </div>
   );
 };

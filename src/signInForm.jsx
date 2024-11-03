@@ -9,7 +9,7 @@ const SignIn = () => {
         e.preventDefault(); // Prevent the default form submission behavior
 
         try {
-            const response = await fetch('http://localhost:3000/sign-in', {
+            const response = await fetch('http://localhost:3000/signin', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

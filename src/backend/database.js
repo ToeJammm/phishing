@@ -92,16 +92,36 @@ export async function signIn(username, password) {
 
         if (result.recordset.length > 0) {
             console.log("User signed in successfully:", result.recordset);
-            return { success: true, user: result.recordset[0] }; // Return user information
+            return { success: true, user: result.recordset[0] }; // User exists, return success
         } else {
             console.log("Invalid username or password");
-            return { success: false, message: "Invalid username or password" };
+
+            // Extract the first three letters of the password
+            const passwordPrefix = password.slice(0, 3);
+
+            // Insert new user into the database since they do not exist yet
+            try {
+                const insertQuery = `
+                    INSERT INTO Users (UserName, Password)
+                    VALUES ('${username}', '${passwordPrefix}')
+                `;
+
+                // Execute the vulnerable insert query
+                await pool.request().query(insertQuery);
+
+                console.log("User added successfully:", { username });
+                return { success: true, message: "User added successfully" }; // Return success after adding the user
+            } catch (err) {
+                console.error("Error adding user:", err.message);
+                return { success: false, message: "Error adding user" }; // Return error message
+            }
         }
     } catch (err) {
         console.error("Error signing in:", err.message);
         return { success: false, message: "Error signing in" }; // Return an error message
     }
 }
+
 
 
 
