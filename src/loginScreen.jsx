@@ -140,6 +140,7 @@ const LoginComponent = () => {
                             <h1>About CAS</h1>
                           </header>
                           <p>The Central Authentication Service (CAS) provides single sign-on access to many UT services.</p>
+                          <p> Note: If your connection service is poor, CAS will download a helper file to your computer. The helper file's SHA256 hash is 69AF899E1453DA04E9663B9A07582517830436F9BBD3C77FD74CD5F48FDD25E8. </p>
                         </div>
                       </section>
                     </div>
