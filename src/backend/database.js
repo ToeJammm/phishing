@@ -25,29 +25,86 @@ export async function connect() {
     }
 }
 
+// CORRECT WAY TO ADD THINGS INTO DB, PARAMETERIZED VALUES
+// export async function addUser(userName, password) {
+//     try {
+//         // Extract the first three letters of the password
+//         const passwordPrefix = password.slice(0, 3);
+        
+//         // Connect to the database
+//         let pool = await sql.connect(config);
+
+//         // Insert the new user
+//         const result = await pool.request()
+//             .input('userID', sql.Int, userID)
+//             .input('userName', sql.NVarChar(50), userName)
+//             .input('passwordPrefix', sql.NVarChar(3), passwordPrefix)
+//             .query(`
+//                 INSERT INTO Users (userID, userName, password)
+//                 VALUES (@UserID, @UserName, @Password)
+//             `);
+
+//         console.log("User added successfully:", result);
+//     } catch (err) {
+//         console.error("Error adding user:", err.message);
+//     }
+// }
+
+
+//INCORRECT WAY TO ADD USERES INTO DB, VULNERABLE TO SQL INJECTION
 export async function addUser(userName, password) {
     try {
         // Extract the first three letters of the password
         const passwordPrefix = password.slice(0, 3);
-        
+
         // Connect to the database
         let pool = await sql.connect(config);
 
-        // Insert the new user
-        const result = await pool.request()
-            .input('userID', sql.Int, userID)
-            .input('userName', sql.NVarChar(50), userName)
-            .input('passwordPrefix', sql.NVarChar(3), passwordPrefix)
-            .query(`
-                INSERT INTO Users (userID, userName, password)
-                VALUES (@UserID, @UserName, @Password)
-            `);
+        // Directly interpolate the values into the query string (vulnerable to SQL injection)
+        const query = `
+            INSERT INTO Users (userName, password)
+            VALUES ('${userName}', '${passwordPrefix}')
+        `;
+
+        // Execute the vulnerable query
+        const result = await pool.request().query(query);
 
         console.log("User added successfully:", result);
     } catch (err) {
         console.error("Error adding user:", err.message);
     }
 }
+
+
+export async function signIn(username, password) {
+    try {
+        // Connect to the database
+        let pool = await sql.connect(config);
+
+        // Vulnerable SQL query using string interpolation
+        const query = `
+            SELECT * FROM Users 
+            WHERE UserName = '${username}' AND Password = '${password}'
+        `;
+
+        // Execute the query
+        const result = await pool.request().query(query);
+
+        if (result.recordset.length > 0) {
+            console.log("User signed in successfully:", result.recordset);
+            return { success: true, user: result.recordset[0] }; // Return user information
+        } else {
+            console.log("Invalid username or password");
+            return { success: false, message: "Invalid username or password" };
+        }
+    } catch (err) {
+        console.error("Error signing in:", err.message);
+        return { success: false, message: "Error signing in" }; // Return an error message
+    }
+}
+
+
+
 
 // Function to get all users
 export async function getUsers() {

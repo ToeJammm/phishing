@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import { addUser, getUsers } from './database.js'; // Assuming addUser is in database.js
+import { addUser, getUsers, signIn } from './database.js'; // Assuming addUser is in database.js
 
 import dotenv from 'dotenv';
 
@@ -35,6 +35,13 @@ app.post('/add-user', async (req, res) => {
         res.status(500).json({ message: 'Failed to add user' });
     }
 });
+
+app.post('/sign-in', async (req, res) => {
+    const { username, password } = req.body;
+    const result = await signIn(username, password);
+    res.json(result); // Ensure this is a JSON response
+});
+
 
 // GET endpoint to retrieve all users
 app.get('/get-users', async (req, res) => {
